@@ -98,7 +98,7 @@ class HabitCard extends StatelessWidget {
 
               // Grid Visualization (last 30 days)
               SizedBox(
-                height: 80,
+                height: 110,
                 child: HabitGrid(
                   habit: habit,
                   months: 1,

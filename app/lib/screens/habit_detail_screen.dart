@@ -126,7 +126,7 @@ class HabitDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacingMD),
           SizedBox(
-            height: 120,
+            height: 130,
             child: HabitGrid(
               habit: habit,
               months: 6,

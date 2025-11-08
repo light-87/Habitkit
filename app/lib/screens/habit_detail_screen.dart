@@ -16,11 +16,14 @@ class HabitDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final habitColor = AppColors.fromHex(habit.color);
+    // Get the latest habit data from provider
+    final habitProvider = context.watch<HabitProvider>();
+    final currentHabit = habitProvider.getHabitById(habit.id) ?? habit;
+    final habitColor = AppColors.fromHex(currentHabit.color);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(habit.name),
+        title: Text(currentHabit.name),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -31,7 +34,7 @@ class HabitDetailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              _showOptionsMenu(context);
+              _showOptionsMenu(context, currentHabit);
             },
           ),
         ],
@@ -51,7 +54,7 @@ class HabitDetailScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    habit.icon,
+                    currentHabit.icon,
                     style: const TextStyle(fontSize: 32),
                   ),
                 ),
@@ -62,12 +65,12 @@ class HabitDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      habit.name,
+                      currentHabit.name,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    if (habit.description.isNotEmpty)
+                    if (currentHabit.description.isNotEmpty)
                       Text(
-                        habit.description,
+                        currentHabit.description,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                   ],
@@ -84,21 +87,21 @@ class HabitDetailScreen extends StatelessWidget {
             children: [
               _buildStatCard(
                 context,
-                '${habit.currentStreak}',
+                '${currentHabit.currentStreak}',
                 'Current Streak',
                 Icons.local_fire_department,
                 AppColors.warning,
               ),
               _buildStatCard(
                 context,
-                '${habit.longestStreak}',
+                '${currentHabit.longestStreak}',
                 'Best Streak',
                 Icons.emoji_events,
                 AppColors.primary,
               ),
               _buildStatCard(
                 context,
-                '${habit.totalCompletions}',
+                '${currentHabit.totalCompletions}',
                 'Total',
                 Icons.check_circle,
                 AppColors.success,
@@ -109,13 +112,13 @@ class HabitDetailScreen extends StatelessWidget {
           const SizedBox(height: AppConstants.spacingXL),
 
           // OR Options Stats (if enabled)
-          if (habit.hasOrOptions && habit.orOptions != null) ...[
+          if (currentHabit.hasOrOptions && currentHabit.orOptions != null) ...[
             Text(
               'Options Breakdown',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppConstants.spacingMD),
-            _buildOrOptionsStats(context),
+            _buildOrOptionsStats(context, currentHabit),
             const SizedBox(height: AppConstants.spacingXL),
           ],
 
@@ -126,13 +129,13 @@ class HabitDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacingMD),
           SizedBox(
-            height: 130,
+            height: 200,
             child: HabitGrid(
-              habit: habit,
+              habit: currentHabit,
               months: 6,
               showLabels: true,
               onTileTap: (date) {
-                _showDayOptions(context, date);
+                _showDayOptions(context, date, currentHabit);
               },
             ),
           ),
@@ -142,7 +145,7 @@ class HabitDetailScreen extends StatelessWidget {
           // Delete Button
           OutlinedButton(
             onPressed: () {
-              _confirmDelete(context);
+              _confirmDelete(context, currentHabit);
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.error,
@@ -189,8 +192,8 @@ class HabitDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrOptionsStats(BuildContext context) {
-    final stats = habit.orOptionStats;
+  Widget _buildOrOptionsStats(BuildContext context, Habit currentHabit) {
+    final stats = currentHabit.orOptionStats;
     final option1Count = stats['option1'] ?? 0;
     final option2Count = stats['option2'] ?? 0;
     final total = stats['total'] ?? 1;
@@ -204,7 +207,7 @@ class HabitDetailScreen extends StatelessWidget {
         Row(
           children: [
             Text(
-              habit.orOptions!.option1.icon ?? '',
+              currentHabit.orOptions!.option1.icon ?? '',
               style: const TextStyle(fontSize: 24),
             ),
             const SizedBox(width: AppConstants.spacingSM),
@@ -213,14 +216,14 @@ class HabitDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    habit.orOptions!.option1.name,
+                    currentHabit.orOptions!.option1.name,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   LinearProgressIndicator(
                     value: option1Count / total,
                     backgroundColor: AppColors.divider,
                     valueColor: AlwaysStoppedAnimation(
-                      AppColors.fromHex(habit.orOptions!.option1.color),
+                      AppColors.fromHex(currentHabit.orOptions!.option1.color),
                     ),
                   ),
                 ],
@@ -240,7 +243,7 @@ class HabitDetailScreen extends StatelessWidget {
         Row(
           children: [
             Text(
-              habit.orOptions!.option2.icon ?? '',
+              currentHabit.orOptions!.option2.icon ?? '',
               style: const TextStyle(fontSize: 24),
             ),
             const SizedBox(width: AppConstants.spacingSM),
@@ -249,14 +252,14 @@ class HabitDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    habit.orOptions!.option2.name,
+                    currentHabit.orOptions!.option2.name,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   LinearProgressIndicator(
                     value: option2Count / total,
                     backgroundColor: AppColors.divider,
                     valueColor: AlwaysStoppedAnimation(
-                      AppColors.fromHex(habit.orOptions!.option2.color),
+                      AppColors.fromHex(currentHabit.orOptions!.option2.color),
                     ),
                   ),
                 ],
@@ -273,9 +276,9 @@ class HabitDetailScreen extends StatelessWidget {
     );
   }
 
-  void _showDayOptions(BuildContext context, DateTime date) {
+  void _showDayOptions(BuildContext context, DateTime date, Habit currentHabit) {
     final habitProvider = context.read<HabitProvider>();
-    final isCompleted = habit.isCompletedOn(date);
+    final isCompleted = currentHabit.isCompletedOn(date);
 
     showModalBottomSheet(
       context: context,
@@ -295,7 +298,7 @@ class HabitDetailScreen extends StatelessWidget {
                 title: const Text('Remove completion'),
                 onTap: () {
                   habitProvider.uncompleteHabit(
-                    habitId: habit.id,
+                    habitId: currentHabit.id,
                     date: date,
                   );
                   Navigator.pop(context);
@@ -307,7 +310,7 @@ class HabitDetailScreen extends StatelessWidget {
                 title: const Text('Mark as complete'),
                 onTap: () {
                   habitProvider.completeHabit(
-                    habitId: habit.id,
+                    habitId: currentHabit.id,
                     date: date,
                   );
                   Navigator.pop(context);
@@ -319,7 +322,7 @@ class HabitDetailScreen extends StatelessWidget {
     );
   }
 
-  void _showOptionsMenu(BuildContext context) {
+  void _showOptionsMenu(BuildContext context, Habit currentHabit) {
     showModalBottomSheet(
       context: context,
       builder: (context) => Column(
@@ -329,7 +332,7 @@ class HabitDetailScreen extends StatelessWidget {
             leading: const Icon(Icons.archive),
             title: const Text('Archive'),
             onTap: () {
-              context.read<HabitProvider>().archiveHabit(habit.id);
+              context.read<HabitProvider>().archiveHabit(currentHabit.id);
               Navigator.pop(context);
               Navigator.pop(context);
             },
@@ -339,12 +342,12 @@ class HabitDetailScreen extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
+  void _confirmDelete(BuildContext context, Habit currentHabit) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Habit'),
-        content: Text('Are you sure you want to delete "${habit.name}"? This action cannot be undone.'),
+        content: Text('Are you sure you want to delete "${currentHabit.name}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -352,7 +355,7 @@ class HabitDetailScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<HabitProvider>().deleteHabit(habit.id);
+              context.read<HabitProvider>().deleteHabit(currentHabit.id);
               Navigator.pop(context);
               Navigator.pop(context);
             },

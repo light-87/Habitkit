@@ -101,6 +101,7 @@ class HabitProvider extends ChangeNotifier {
     if (streakGoal != null) habit.streakGoal = streakGoal;
     if (targetCompletionsPerDay != null) habit.targetCompletionsPerDay = targetCompletionsPerDay;
 
+  Future<void> updateHabit(Habit habit) async {
     await HabitService.updateHabit(habit);
     await loadHabits();
   }

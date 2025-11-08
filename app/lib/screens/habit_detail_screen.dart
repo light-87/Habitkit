@@ -35,6 +35,15 @@ class HabitDetailScreen extends StatelessWidget {
                   builder: (context) => EditHabitScreen(habit: currentHabit),
                 ),
               );
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // TODO: Navigate to edit screen
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              _showOptionsMenu(context, currentHabit);
             },
           ),
         ],

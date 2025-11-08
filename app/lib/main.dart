@@ -4,6 +4,7 @@ import 'services/database_service.dart';
 import 'services/premium_service.dart';
 import 'providers/habit_provider.dart';
 import 'providers/premium_provider.dart';
+import 'providers/habit_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'utils/theme.dart';
 

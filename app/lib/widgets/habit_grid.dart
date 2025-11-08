@@ -163,9 +163,15 @@ class _GridTile extends StatelessWidget {
     }
 
     // Regular habit: Use habit color with intensity
+    // Use color interpolation from light to dark for better visibility
     final habitColor = AppColors.fromHex(habit.color);
     final intensity = (completion.count / 3).clamp(0.0, 1.0);
-    return habitColor.withOpacity(0.3 + (0.7 * intensity));
+
+    // Create a light tint of the color for low intensity
+    final lightColor = Color.lerp(Colors.white, habitColor, 0.3)!;
+
+    // Interpolate between light and full color based on intensity
+    return Color.lerp(lightColor, habitColor, intensity)!;
   }
 
   @override

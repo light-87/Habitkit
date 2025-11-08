@@ -1,36 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/habit_provider.dart';
-import '../providers/premium_provider.dart';
-import '../models/or_option.dart';
-import '../utils/constants.dart';
-import 'premium_screen.dart';
+import '../models/habit.dart';
 import '../models/or_option.dart';
 import '../utils/constants.dart';
 
-class AddHabitScreen extends StatefulWidget {
-  const AddHabitScreen({super.key});
+class EditHabitScreen extends StatefulWidget {
+  final Habit habit;
+
+  const EditHabitScreen({super.key, required this.habit});
 
   @override
-  State<AddHabitScreen> createState() => _AddHabitScreenState();
+  State<EditHabitScreen> createState() => _EditHabitScreenState();
 }
 
-class _AddHabitScreenState extends State<AddHabitScreen> {
+class _EditHabitScreenState extends State<EditHabitScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
 
-  String _selectedIcon = '💪';
-  String _selectedColor = '#8B5CF6';
-  bool _hasOrOptions = false;
+  late String _selectedIcon;
+  late String _selectedColor;
+  late bool _hasOrOptions;
 
   // OR Options
-  final _option1NameController = TextEditingController();
-  final _option2NameController = TextEditingController();
-  String _option1Icon = '🏋️';
-  String _option2Icon = '🏸';
-  String _option1Color = '#8B5CF6';
-  String _option2Color = '#EF4444';
+  late TextEditingController _option1NameController;
+  late TextEditingController _option2NameController;
+  late String _option1Icon;
+  late String _option2Icon;
+  late String _option1Color;
+  late String _option2Color;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize with existing habit data
+    _nameController = TextEditingController(text: widget.habit.name);
+    _descriptionController = TextEditingController(text: widget.habit.description);
+    _selectedIcon = widget.habit.icon;
+    _selectedColor = AppColors.toHex(Color(widget.habit.color));
+    _hasOrOptions = widget.habit.hasOrOptions;
+
+    // Initialize OR Options
+    if (widget.habit.orOptions != null) {
+      _option1NameController = TextEditingController(text: widget.habit.orOptions!.option1.name);
+      _option2NameController = TextEditingController(text: widget.habit.orOptions!.option2.name);
+      _option1Icon = widget.habit.orOptions!.option1.icon;
+      _option2Icon = widget.habit.orOptions!.option2.icon;
+      _option1Color = widget.habit.orOptions!.option1.color;
+      _option2Color = widget.habit.orOptions!.option2.color;
+    } else {
+      _option1NameController = TextEditingController();
+      _option2NameController = TextEditingController();
+      _option1Icon = '🏋️';
+      _option2Icon = '🏸';
+      _option1Color = '#8B5CF6';
+      _option2Color = '#EF4444';
+    }
+  }
 
   @override
   void dispose() {
@@ -45,11 +73,17 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Habit'),
+        title: const Text('Edit Habit'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _deleteHabit,
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -189,7 +223,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 56),
               ),
-              child: const Text('Save'),
+              child: const Text('Save Changes'),
             ),
           ],
         ),
@@ -343,25 +377,6 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
     }
 
     final habitProvider = context.read<HabitProvider>();
-    final premiumProvider = context.read<PremiumProvider>();
-
-    // Check if user can create more habits
-    if (!premiumProvider.canCreateMoreHabits(habitProvider.habits.length)) {
-      if (mounted) {
-        // Show premium screen
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PremiumScreen(),
-          ),
-        );
-
-        // If user didn't unlock premium, return
-        if (!premiumProvider.isPremium) {
-          return;
-        }
-      }
-    }
 
     OrOptions? orOptions;
     if (_hasOrOptions) {
@@ -379,7 +394,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       );
     }
 
-    await habitProvider.createHabit(
+    await habitProvider.updateHabit(
+      widget.habit.id,
       name: _nameController.text,
       description: _descriptionController.text,
       icon: _selectedIcon,
@@ -390,6 +406,34 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
     if (mounted) {
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _deleteHabit() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Habit'),
+        content: const Text('Are you sure you want to delete this habit? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await context.read<HabitProvider>().deleteHabit(widget.habit.id);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 }

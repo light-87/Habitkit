@@ -5,6 +5,7 @@ import '../providers/habit_provider.dart';
 import '../widgets/habit_grid.dart';
 import '../utils/constants.dart';
 import '../utils/date_utils.dart' as app_date_utils;
+import 'edit_habit_screen.dart';
 
 class HabitDetailScreen extends StatelessWidget {
   final Habit habit;
@@ -26,6 +27,14 @@ class HabitDetailScreen extends StatelessWidget {
         title: Text(currentHabit.name),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditHabitScreen(habit: currentHabit),
+                ),
+              );
             icon: const Icon(Icons.edit),
             onPressed: () {
               // TODO: Navigate to edit screen

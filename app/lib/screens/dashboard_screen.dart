@@ -1,16 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/habit_provider.dart';
+import '../providers/premium_provider.dart';
 import '../widgets/habit_card.dart';
 import '../utils/constants.dart';
 import 'add_habit_screen.dart';
 import 'habit_detail_screen.dart';
+import 'statistics_screen.dart';
+import 'settings_screen.dart';
+import 'premium_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final premiumProvider = context.watch<PremiumProvider>();
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
+          },
+        ),
     return Scaffold(
       appBar: AppBar(
         title: RichText(
@@ -26,10 +45,66 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          // PRO badge button
+          if (!premiumProvider.isPremium)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PremiumScreen(),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  side: const BorderSide(color: Colors.black, width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'PRO',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
           // Stats button
           IconButton(
             icon: const Icon(Icons.analytics_outlined),
             onPressed: () {
+              if (!premiumProvider.canViewStatistics) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PremiumScreen(),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StatisticsScreen(),
+                  ),
+                );
+              }
+            },
+          ),
+          // Add button
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AddHabitScreen(),
+                ),
+              );
               // TODO: Navigate to stats screen
             },
           ),
@@ -94,6 +169,64 @@ class DashboardScreen extends StatelessWidget {
           );
         },
       ),
+      bottomNavigationBar: _buildViewModeSwitcher(context),
+    );
+  }
+
+  Widget _buildViewModeSwitcher(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 80,
+        vertical: 20,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildViewModeButton(
+              icon: Icons.grid_view,
+              isSelected: true,
+              onTap: () {},
+            ),
+            _buildViewModeButton(
+              icon: Icons.check_box_outlined,
+              isSelected: false,
+              onTap: () {},
+            ),
+            _buildViewModeButton(
+              icon: Icons.list,
+              isSelected: false,
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewModeButton({
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? AppColors.primary : Colors.grey[600],
+        ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).push(

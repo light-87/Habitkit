@@ -75,6 +75,32 @@ class HabitProvider extends ChangeNotifier {
   }
 
   // Update habit
+  Future<void> updateHabit(
+    String habitId, {
+    String? name,
+    String? description,
+    String? icon,
+    String? color,
+    bool? hasOrOptions,
+    OrOptions? orOptions,
+    List<String>? tags,
+    int? streakGoal,
+    int? targetCompletionsPerDay,
+  }) async {
+    final habit = getHabitById(habitId);
+    if (habit == null) return;
+
+    // Update fields if provided
+    if (name != null) habit.name = name;
+    if (description != null) habit.description = description;
+    if (icon != null) habit.icon = icon;
+    if (color != null) habit.color = color;
+    if (hasOrOptions != null) habit.hasOrOptions = hasOrOptions;
+    if (orOptions != null || hasOrOptions == false) habit.orOptions = orOptions;
+    if (tags != null) habit.tags = tags;
+    if (streakGoal != null) habit.streakGoal = streakGoal;
+    if (targetCompletionsPerDay != null) habit.targetCompletionsPerDay = targetCompletionsPerDay;
+
   Future<void> updateHabit(Habit habit) async {
     await HabitService.updateHabit(habit);
     await loadHabits();

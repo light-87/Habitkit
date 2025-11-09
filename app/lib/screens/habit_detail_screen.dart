@@ -136,11 +136,11 @@ class HabitDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacingMD),
           SizedBox(
-            height: 140,
+            height: 110,
             child: HabitGrid(
               habit: currentHabit,
               months: 5,
-              showLabels: true,
+              showLabels: false,
               onTileTap: (date) {
                 _showDayOptions(context, date, currentHabit);
               },

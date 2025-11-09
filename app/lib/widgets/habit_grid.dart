@@ -54,11 +54,8 @@ class _GitHubStyleGrid extends StatelessWidget {
       current = current.subtract(const Duration(days: 1));
     }
 
-    // Get the end of the week containing today (Sunday)
-    DateTime endDate = now;
-    while (endDate.weekday != DateTime.sunday) {
-      endDate = endDate.add(const Duration(days: 1));
-    }
+    // Get the end date: 1 week (7 days) after today
+    final endDate = now.add(const Duration(days: 7));
 
     // Build grid: 7 rows (Mon-Sun) and multiple columns (weeks)
     final grid = <List<DateTime?>>[];
@@ -92,153 +89,45 @@ class _GitHubStyleGrid extends StatelessWidget {
     return grid;
   }
 
-  // Get month labels with their starting column positions
-  List<MapEntry<int, String>> _getMonthLabels(List<List<DateTime?>> grid) {
-    final labels = <MapEntry<int, String>>[];
-    String? lastMonth;
-
-    if (grid.isEmpty || grid[0].isEmpty) return labels;
-
-    // Check each column (week)
-    for (int col = 0; col < grid[0].length; col++) {
-      // Find the first non-null date in this column
-      DateTime? date;
-      for (int row = 0; row < grid.length; row++) {
-        if (grid[row][col] != null) {
-          date = grid[row][col];
-          break;
-        }
-      }
-
-      if (date != null) {
-        final monthName = app_date_utils.DateUtils.getMonthName(date, short: true);
-
-        // Add label if this is a new month
-        if (monthName != lastMonth) {
-          labels.add(MapEntry(col, monthName));
-          lastMonth = monthName;
-        }
-      }
-    }
-
-    return labels;
-  }
-
   @override
   Widget build(BuildContext context) {
     final grid = _generateGridData();
-    final monthLabels = _getMonthLabels(grid);
 
     if (grid.isEmpty || grid[0].isEmpty) {
       return const SizedBox.shrink();
     }
 
     final weekCount = grid[0].length;
-    const double tileSize = AppConstants.gridTileSize;
-    const double tileGap = AppConstants.gridTileGap;
-    const double weekdayLabelWidth = 28.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-          // Month labels
-          if (showLabels) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: weekdayLabelWidth, bottom: 4),
-              child: SizedBox(
-                height: 14,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: monthLabels.map((entry) {
-                    final col = entry.key;
-                    final label = entry.value;
-                    return Positioned(
-                      left: col * (tileSize + tileGap),
-                      child: Text(
-                        label,
-                        overflow: TextOverflow.visible,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-          ],
+        // Grid tiles (no labels)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: List.generate(7, (rowIndex) {
+            return Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(weekCount, (colIndex) {
+                final date = grid[rowIndex][colIndex];
 
-          // Grid
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              // Weekday labels (Mon, Wed, Fri)
-              if (showLabels)
-                SizedBox(
-                  width: weekdayLabelWidth,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildWeekdayLabel('Mon'),
-                      _buildWeekdayLabel(''),
-                      _buildWeekdayLabel('Wed'),
-                      _buildWeekdayLabel(''),
-                      _buildWeekdayLabel('Fri'),
-                      _buildWeekdayLabel(''),
-                      _buildWeekdayLabel(''),
-                    ],
-                  ),
-                ),
-
-              // Grid tiles
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: List.generate(7, (rowIndex) {
-                    return Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(weekCount, (colIndex) {
-                        final date = grid[rowIndex][colIndex];
-
-                        return _GridTile(
-                          date: date,
-                          habit: habit,
-                          onTap: date != null && onTileTap != null
-                              ? () => onTileTap!(date)
-                              : null,
-                        );
-                      }),
-                    );
-                  }),
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-  }
-
-  Widget _buildWeekdayLabel(String label) {
-    return Container(
-      height: AppConstants.gridTileSize + AppConstants.gridTileGap,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.only(right: 4),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 9,
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w400,
+                return _GridTile(
+                  date: date,
+                  habit: habit,
+                  onTap: date != null && onTileTap != null
+                      ? () => onTileTap!(date)
+                      : null,
+                );
+              }),
+            );
+          }),
         ),
-      ),
+      ],
     );
   }
+
 }
 
 class _GridTile extends StatelessWidget {

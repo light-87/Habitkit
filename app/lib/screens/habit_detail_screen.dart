@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/habit.dart';
 import '../providers/habit_provider.dart';
 import '../widgets/habit_grid.dart';
+import '../widgets/month_calendar.dart';
 import '../utils/constants.dart';
 import '../utils/date_utils.dart' as app_date_utils;
 import 'edit_habit_screen.dart';
@@ -128,22 +129,32 @@ class HabitDetailScreen extends StatelessWidget {
             const SizedBox(height: AppConstants.spacingXL),
           ],
 
-          // Grid Visualization
+          // Year View Grid Visualization
           Text(
             'History',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppConstants.spacingMD),
           SizedBox(
-            height: 200,
+            height: 140,
             child: HabitGrid(
               habit: currentHabit,
-              months: 6,
+              months: 7,
               showLabels: true,
               onTileTap: (date) {
                 _showDayOptions(context, date, currentHabit);
               },
             ),
+          ),
+
+          const SizedBox(height: AppConstants.spacingXL),
+
+          // Month Calendar View
+          MonthCalendar(
+            habit: currentHabit,
+            onDayTap: (date) {
+              _showDayOptions(context, date, currentHabit);
+            },
           ),
 
           const SizedBox(height: AppConstants.spacingXL),

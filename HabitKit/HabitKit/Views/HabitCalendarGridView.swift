@@ -70,8 +70,10 @@ struct HabitCalendarGridView: View {
         let calendar = Calendar.current
         let today = Date()
 
-        // Calculate the date for this cell
-        let daysFromToday = -(week * 7 + day)
+        // Start from about 1 month before today, then show forward
+        // This centers the view around the current month
+        let weeksBeforeToday = 4  // Show 1 month of history
+        let daysFromToday = -(weeksBeforeToday * 7) + (week * 7 + day)
         return calendar.date(byAdding: .day, value: daysFromToday, to: today)
     }
 

@@ -53,94 +53,35 @@ class _HabitGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get dates organized by month and weekday
-    final yearViewData = app_date_utils.DateUtils.getYearViewDates(months: months);
+    // Get dates organized by weeks
+    final weeks = app_date_utils.DateUtils.getWeekGridDates(months: months);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Day labels (Mon, Tue, Wed, etc.)
-          if (showLabels)
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 20,
-                right: AppConstants.spacingSM,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                    .map((day) => SizedBox(
-                          height: AppConstants.gridTileSize +
-                              AppConstants.gridTileGap,
-                          child: Center(
-                            child: Text(
-                              day,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    fontSize: 10,
-                                    color: AppColors.textSecondary,
-                                  ),
-                            ),
-                          ),
-                        ))
-                    .toList(),
-              ),
-            ),
+        mainAxisSize: MainAxisSize.min,
+        children: weeks.map((week) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: week.map((date) {
+              if (date == null) {
+                // Empty cell for dates outside range
+                return Container(
+                  width: AppConstants.gridTileSize,
+                  height: AppConstants.gridTileSize,
+                  margin: const EdgeInsets.all(AppConstants.gridTileGap / 2),
+                );
+              }
 
-          // Month columns
-          ...yearViewData.entries.map((monthEntry) {
-            final monthName = monthEntry.key;
-            final weekdayData = monthEntry.value;
-
-            return Padding(
-              padding: const EdgeInsets.only(right: AppConstants.spacingSM),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Month label
-                  if (showLabels)
-                    SizedBox(
-                      height: 20,
-                      child: Text(
-                        monthName,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                    ),
-
-                  // Weekday rows for this month
-                  ...List.generate(7, (index) {
-                    final weekday = index + 1; // 1 = Monday, 7 = Sunday
-                    final daysInWeekday = weekdayData[weekday] ?? [];
-
-                    return SizedBox(
-                      height: AppConstants.gridTileSize +
-                          AppConstants.gridTileGap,
-                      child: Row(
-                        children: daysInWeekday.map((date) {
-                          return _GridTile(
-                            date: date,
-                            habit: habit,
-                            onTap: onTileTap != null
-                                ? () => onTileTap!(date)
-                                : null,
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            );
-          }),
-        ],
+              return _GridTile(
+                date: date,
+                habit: habit,
+                onTap: onTileTap != null ? () => onTileTap!(date) : null,
+              );
+            }).toList(),
+          );
+        }).toList(),
       ),
     );
   }
@@ -159,9 +100,11 @@ class _GridTile extends StatelessWidget {
 
   Color _getTileColor() {
     final completion = habit.getCompletionForDate(date);
+    final habitColor = AppColors.fromHex(habit.color);
 
+    // If no completion, show very light tint of habit color
     if (completion == null) {
-      return const Color(0xFFE5E7EB); // Empty tile
+      return habitColor.withOpacity(0.15);
     }
 
     // OR Options: Use the selected option's color
@@ -176,16 +119,8 @@ class _GridTile extends StatelessWidget {
       }
     }
 
-    // Regular habit: Use habit color with intensity
-    // Use color interpolation from light to dark for better visibility
-    final habitColor = AppColors.fromHex(habit.color);
-    final intensity = (completion.count / 3).clamp(0.0, 1.0);
-
-    // Create a light tint of the color for low intensity
-    final lightColor = Color.lerp(Colors.white, habitColor, 0.3)!;
-
-    // Interpolate between light and full color based on intensity
-    return Color.lerp(lightColor, habitColor, intensity)!;
+    // Regular habit: Use full habit color for completed days
+    return habitColor;
   }
 
   @override

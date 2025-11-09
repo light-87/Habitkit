@@ -101,7 +101,7 @@ class HabitCard extends StatelessWidget {
                 height: 130,
                 child: HabitGrid(
                   habit: habit,
-                  months: 7,
+                  months: 5,
                   showLabels: true,
                 ),
               ),

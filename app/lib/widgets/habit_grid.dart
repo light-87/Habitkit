@@ -12,7 +12,7 @@ class HabitGrid extends StatelessWidget {
   const HabitGrid({
     super.key,
     required this.habit,
-    this.months = 7,
+    this.months = 5,
     this.showLabels = true,
     this.onTileTap,
   });
@@ -78,8 +78,8 @@ class _GitHubStyleGrid extends StatelessWidget {
         // Only add dates that are within our range
         if (currentDate.isBefore(startMonth)) {
           grid[dayOfWeek].add(null);
-        } else if (currentDate.isAfter(now)) {
-          // Don't show future dates
+        } else if (currentDate.isAfter(endDate)) {
+          // Don't show dates beyond the end of current week
           grid[dayOfWeek].add(null);
         } else {
           grid[dayOfWeek].add(currentDate);
@@ -138,12 +138,10 @@ class _GitHubStyleGrid extends StatelessWidget {
     const double tileGap = AppConstants.gridTileGap;
     const double weekdayLabelWidth = 28.0;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
           // Month labels
           if (showLabels) ...[
             Padding(
@@ -218,8 +216,7 @@ class _GitHubStyleGrid extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildWeekdayLabel(String label) {

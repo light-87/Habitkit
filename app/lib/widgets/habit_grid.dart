@@ -113,7 +113,7 @@ class _GitHubStyleGrid extends StatelessWidget {
       if (date != null) {
         final monthName = app_date_utils.DateUtils.getMonthName(date, short: true);
 
-        // Add label if this is a new month and it's at the start of the month or first column
+        // Add label if this is a new month
         if (monthName != lastMonth) {
           labels.add(MapEntry(col, monthName));
           lastMonth = monthName;
@@ -136,7 +136,7 @@ class _GitHubStyleGrid extends StatelessWidget {
     final weekCount = grid[0].length;
     const double tileSize = AppConstants.gridTileSize;
     const double tileGap = AppConstants.gridTileGap;
-    const double weekdayLabelWidth = 24.0;
+    const double weekdayLabelWidth = 28.0;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -147,33 +147,26 @@ class _GitHubStyleGrid extends StatelessWidget {
           // Month labels
           if (showLabels) ...[
             Padding(
-              padding: EdgeInsets.only(left: weekdayLabelWidth, bottom: 4),
+              padding: const EdgeInsets.only(left: weekdayLabelWidth, bottom: 4),
               child: SizedBox(
                 height: 14,
-                child: Row(
-                  children: List.generate(weekCount, (colIndex) {
-                    // Find if there's a month label for this column
-                    final labelEntry = monthLabels.where((entry) => entry.key == colIndex);
-
-                    if (labelEntry.isNotEmpty) {
-                      return Container(
-                        width: tileSize + tileGap,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          labelEntry.first.value,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                width: weekCount * (tileSize + tileGap),
+                child: Stack(
+                  children: monthLabels.map((entry) {
+                    final col = entry.key;
+                    final label = entry.value;
+                    return Positioned(
+                      left: col * (tileSize + tileGap),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
-                      );
-                    }
-
-                    return SizedBox(
-                      width: tileSize + tileGap,
+                      ),
                     );
-                  }),
+                  }).toList(),
                 ),
               ),
             ),

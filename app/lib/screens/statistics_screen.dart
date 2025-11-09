@@ -284,7 +284,7 @@ class StatisticsScreen extends StatelessWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Color(habit.color),
+                          color: AppColors.fromHex(habit.color),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
@@ -396,7 +396,7 @@ class StatisticsScreen extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Color(habit.color),
+                      color: AppColors.fromHex(habit.color),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
@@ -443,7 +443,7 @@ class StatisticsScreen extends StatelessWidget {
     if (habit.completions.isEmpty) return false;
     final now = DateTime.now();
     final lastCompletion = habit.completions.last;
-    final daysDiff = now.difference(lastCompletion).inDays;
+    final daysDiff = now.difference(lastCompletion.date).inDays;
     return daysDiff <= 7; // Active if completed within last 7 days
   }
 
@@ -457,9 +457,9 @@ class StatisticsScreen extends StatelessWidget {
 
       for (final habit in habits) {
         final completed = habit.completions.any((completion) {
-          return completion.year == date.year &&
-              completion.month == date.month &&
-              completion.day == date.day;
+          return completion.date.year == date.year &&
+              completion.date.month == date.month &&
+              completion.date.day == date.day;
         });
         if (completed) completedCount++;
       }
@@ -476,7 +476,7 @@ class StatisticsScreen extends StatelessWidget {
 
     final now = DateTime.now();
     final first = habit.completions.first;
-    final daysSinceStart = now.difference(first).inDays + 1;
+    final daysSinceStart = now.difference(first.date).inDays + 1;
 
     if (daysSinceStart <= 0) return 0.0;
 

@@ -39,15 +39,15 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
     _nameController = TextEditingController(text: widget.habit.name);
     _descriptionController = TextEditingController(text: widget.habit.description);
     _selectedIcon = widget.habit.icon;
-    _selectedColor = AppColors.toHex(Color(widget.habit.color));
+    _selectedColor = widget.habit.color;
     _hasOrOptions = widget.habit.hasOrOptions;
 
     // Initialize OR Options
     if (widget.habit.orOptions != null) {
       _option1NameController = TextEditingController(text: widget.habit.orOptions!.option1.name);
       _option2NameController = TextEditingController(text: widget.habit.orOptions!.option2.name);
-      _option1Icon = widget.habit.orOptions!.option1.icon;
-      _option2Icon = widget.habit.orOptions!.option2.icon;
+      _option1Icon = widget.habit.orOptions!.option1.icon ?? '🏋️';
+      _option2Icon = widget.habit.orOptions!.option2.icon ?? '🏸';
       _option1Color = widget.habit.orOptions!.option1.color;
       _option2Color = widget.habit.orOptions!.option2.color;
     } else {

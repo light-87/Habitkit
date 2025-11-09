@@ -19,19 +19,6 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.settings_outlined),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SettingsScreen(),
-              ),
-            );
-          },
-        ),
-    return Scaffold(
-      appBar: AppBar(
         title: RichText(
           text: TextSpan(
             style: Theme.of(context).textTheme.displaySmall,
@@ -227,16 +214,6 @@ class DashboardScreen extends StatelessWidget {
           icon,
           color: isSelected ? AppColors.primary : Colors.grey[600],
         ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AddHabitScreen(),
-            ),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Add Habit'),
       ),
     );
   }

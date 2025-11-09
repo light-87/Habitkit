@@ -27,7 +27,7 @@ class HabitDetailScreen extends StatelessWidget {
         title: Text(currentHabit.name),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.edit),
             onPressed: () {
               Navigator.push(
                 context,
@@ -35,9 +35,6 @@ class HabitDetailScreen extends StatelessWidget {
                   builder: (context) => EditHabitScreen(habit: currentHabit),
                 ),
               );
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Navigate to edit screen
             },
           ),
           IconButton(

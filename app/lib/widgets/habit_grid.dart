@@ -54,7 +54,11 @@ class _GitHubStyleGrid extends StatelessWidget {
       current = current.subtract(const Duration(days: 1));
     }
 
-    final endDate = now;
+    // Get the end of the week containing today (Sunday)
+    DateTime endDate = now;
+    while (endDate.weekday != DateTime.sunday) {
+      endDate = endDate.add(const Duration(days: 1));
+    }
 
     // Build grid: 7 rows (Mon-Sun) and multiple columns (weeks)
     final grid = <List<DateTime?>>[];
@@ -67,14 +71,15 @@ class _GitHubStyleGrid extends StatelessWidget {
     // Fill in the dates
     DateTime date = current;
     while (date.isBefore(endDate) || date.isAtSameMomentAs(endDate)) {
-      // Add dates for one week
+      // Add dates for one week (Monday to Sunday)
       for (int dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
         final currentDate = date.add(Duration(days: dayOfWeek));
 
         // Only add dates that are within our range
         if (currentDate.isBefore(startMonth)) {
           grid[dayOfWeek].add(null);
-        } else if (currentDate.isAfter(endDate)) {
+        } else if (currentDate.isAfter(now)) {
+          // Don't show future dates
           grid[dayOfWeek].add(null);
         } else {
           grid[dayOfWeek].add(currentDate);
@@ -108,7 +113,7 @@ class _GitHubStyleGrid extends StatelessWidget {
       if (date != null) {
         final monthName = app_date_utils.DateUtils.getMonthName(date, short: true);
 
-        // Add label if this is a new month
+        // Add label if this is a new month and it's at the start of the month or first column
         if (monthName != lastMonth) {
           labels.add(MapEntry(col, monthName));
           lastMonth = monthName;
@@ -129,6 +134,9 @@ class _GitHubStyleGrid extends StatelessWidget {
     }
 
     final weekCount = grid[0].length;
+    const double tileSize = AppConstants.gridTileSize;
+    const double tileGap = AppConstants.gridTileGap;
+    const double weekdayLabelWidth = 24.0;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -139,22 +147,20 @@ class _GitHubStyleGrid extends StatelessWidget {
           // Month labels
           if (showLabels) ...[
             Padding(
-              padding: const EdgeInsets.only(left: 0, bottom: 4),
+              padding: EdgeInsets.only(left: weekdayLabelWidth, bottom: 4),
               child: SizedBox(
-                height: 16,
+                height: 14,
                 child: Row(
                   children: List.generate(weekCount, (colIndex) {
                     // Find if there's a month label for this column
-                    final label = monthLabels.firstWhere(
-                      (entry) => entry.key == colIndex,
-                      orElse: () => const MapEntry(-1, ''),
-                    );
+                    final labelEntry = monthLabels.where((entry) => entry.key == colIndex);
 
-                    if (label.key == colIndex) {
-                      return SizedBox(
-                        width: AppConstants.gridTileSize + AppConstants.gridTileGap,
+                    if (labelEntry.isNotEmpty) {
+                      return Container(
+                        width: tileSize + tileGap,
+                        alignment: Alignment.centerLeft,
                         child: Text(
-                          label.value,
+                          labelEntry.first.value,
                           style: const TextStyle(
                             fontSize: 10,
                             color: AppColors.textSecondary,
@@ -165,7 +171,7 @@ class _GitHubStyleGrid extends StatelessWidget {
                     }
 
                     return SizedBox(
-                      width: AppConstants.gridTileSize + AppConstants.gridTileGap,
+                      width: tileSize + tileGap,
                     );
                   }),
                 ),
@@ -180,18 +186,18 @@ class _GitHubStyleGrid extends StatelessWidget {
             children: [
               // Weekday labels (Mon, Wed, Fri)
               if (showLabels)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
+                SizedBox(
+                  width: weekdayLabelWidth,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildWeekdayLabel(''),  // Mon - no label
-                      _buildWeekdayLabel(''),  // Tue - no label
+                      _buildWeekdayLabel('Mon'),
+                      _buildWeekdayLabel(''),
                       _buildWeekdayLabel('Wed'),
-                      _buildWeekdayLabel(''),  // Thu - no label
+                      _buildWeekdayLabel(''),
                       _buildWeekdayLabel('Fri'),
-                      _buildWeekdayLabel(''),  // Sat - no label
-                      _buildWeekdayLabel(''),  // Sun - no label
+                      _buildWeekdayLabel(''),
+                      _buildWeekdayLabel(''),
                     ],
                   ),
                 ),
@@ -226,7 +232,8 @@ class _GitHubStyleGrid extends StatelessWidget {
   Widget _buildWeekdayLabel(String label) {
     return Container(
       height: AppConstants.gridTileSize + AppConstants.gridTileGap,
-      alignment: Alignment.centerRight,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.only(right: 4),
       child: Text(
         label,
         style: const TextStyle(

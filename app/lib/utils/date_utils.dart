@@ -133,6 +133,46 @@ class DateUtils {
     return getEndOfMonth(date).day;
   }
 
+  // Get dates organized by weeks for compact grid visualization
+  static List<List<DateTime?>> getWeekGridDates({int months = 7}) {
+    final now = DateTime.now();
+
+    // Start from N months ago
+    final startMonth = DateTime(now.year, now.month - months + 1, 1);
+
+    // Get the first day to display (start of week containing first day of start month)
+    final firstDay = getStartOfWeek(startMonth);
+
+    // Get the last day to display (end of current month)
+    final lastDay = getEndOfMonth(now);
+
+    final weeks = <List<DateTime?>>[];
+    DateTime current = firstDay;
+
+    // Build weeks until we've covered all the months
+    while (current.isBefore(lastDay) || current.isAtSameMomentAs(lastDay)) {
+      final week = <DateTime?>[];
+
+      // Add 7 days for this week (Mon-Sun)
+      for (int i = 0; i < 7; i++) {
+        final date = current.add(Duration(days: i));
+
+        // Only add date if it's within our month range
+        if (date.isAfter(startMonth.subtract(const Duration(days: 1))) &&
+            date.isBefore(lastDay.add(const Duration(days: 1)))) {
+          week.add(date);
+        } else {
+          week.add(null); // Empty cell for dates outside range
+        }
+      }
+
+      weeks.add(week);
+      current = current.add(const Duration(days: 7));
+    }
+
+    return weeks;
+  }
+
   // Check if date is in the last N days
   static bool isInLastDays(DateTime date, int days) {
     final now = DateTime.now();

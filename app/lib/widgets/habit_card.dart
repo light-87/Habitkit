@@ -96,13 +96,13 @@ class HabitCard extends StatelessWidget {
 
               const SizedBox(height: AppConstants.spacingMD),
 
-              // Grid Visualization (last 30 days)
+              // Grid Visualization (compact year view)
               SizedBox(
-                height: 110,
+                height: 100,
                 child: HabitGrid(
                   habit: habit,
-                  months: 1,
-                  showLabels: false,
+                  months: 7,
+                  showLabels: true,
                 ),
               ),
 

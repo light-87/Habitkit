@@ -53,22 +53,15 @@ class _HabitGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get dates for the grid
-    final dates = app_date_utils.DateUtils.getGridDates(months: months);
-
-    // Group by weeks
-    final weeks = <List<DateTime>>[];
-    for (int i = 0; i < dates.length; i += 7) {
-      final end = (i + 7 < dates.length) ? i + 7 : dates.length;
-      weeks.add(dates.sublist(i, end));
-    }
+    // Get dates organized by month and weekday
+    final yearViewData = app_date_utils.DateUtils.getYearViewDates(months: months);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Day labels (Mon, Tue, etc.)
+          // Day labels (Mon, Tue, Wed, etc.)
           if (showLabels)
             Padding(
               padding: const EdgeInsets.only(
@@ -77,6 +70,7 @@ class _HabitGridWidget extends StatelessWidget {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
                     .map((day) => SizedBox(
                           height: AppConstants.gridTileSize +
@@ -87,7 +81,10 @@ class _HabitGridWidget extends StatelessWidget {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(fontSize: 10),
+                                  ?.copyWith(
+                                    fontSize: 10,
+                                    color: AppColors.textSecondary,
+                                  ),
                             ),
                           ),
                         ))
@@ -95,35 +92,52 @@ class _HabitGridWidget extends StatelessWidget {
               ),
             ),
 
-          // Grid tiles
-          ...weeks.map((week) {
-            final monthName = app_date_utils.DateUtils.getMonthName(week.first);
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Month label
-                if (showLabels)
-                  SizedBox(
-                    height: 20,
-                    child: Text(
-                      week.first.day <= 7 ? monthName : '',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(fontSize: 10),
+          // Month columns
+          ...yearViewData.entries.map((monthEntry) {
+            final monthName = monthEntry.key;
+            final weekdayData = monthEntry.value;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: AppConstants.spacingSM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Month label
+                  if (showLabels)
+                    SizedBox(
+                      height: 20,
+                      child: Text(
+                        monthName,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
                     ),
-                  ),
-                // Week column
-                Column(
-                  children: week.map((date) {
-                    return _GridTile(
-                      date: date,
-                      habit: habit,
-                      onTap: () => onTileTap?.call(date),
+
+                  // Weekday rows for this month
+                  ...List.generate(7, (index) {
+                    final weekday = index + 1; // 1 = Monday, 7 = Sunday
+                    final daysInWeekday = weekdayData[weekday] ?? [];
+
+                    return SizedBox(
+                      height: AppConstants.gridTileSize +
+                          AppConstants.gridTileGap,
+                      child: Row(
+                        children: daysInWeekday.map((date) {
+                          return _GridTile(
+                            date: date,
+                            habit: habit,
+                            onTap: onTileTap != null
+                                ? () => onTileTap!(date)
+                                : null,
+                          );
+                        }).toList(),
+                      ),
                     );
-                  }).toList(),
-                ),
-              ],
+                  }),
+                ],
+              ),
             );
           }),
         ],

@@ -67,15 +67,49 @@ class DateUtils {
   // Get dates for grid visualization (last N months)
   static List<DateTime> getGridDates({int months = 6}) {
     final now = DateTime.now();
-    final end = dateOnly(now);
 
-    // Go back to the start of the week
-    final startOfWeek = end.subtract(Duration(days: end.weekday - 1));
+    // Calculate start date: go back (months - 1) months from current month
+    // This centers the current month better in the view
+    final start = DateTime(now.year, now.month - (months - 1), 1);
 
-    // Go back N months
-    final start = DateTime(startOfWeek.year, startOfWeek.month - months, startOfWeek.day);
+    // End date: end of current month
+    final end = getEndOfMonth(now);
 
     return getDatesInRange(start, end);
+  }
+
+  // Get dates organized by month and weekday for year view
+  static Map<String, Map<int, List<DateTime>>> getYearViewDates({int months = 7}) {
+    final now = DateTime.now();
+
+    // Start from N months ago
+    final startMonth = DateTime(now.year, now.month - months + 1, 1);
+
+    final result = <String, Map<int, List<DateTime>>>{};
+
+    // Iterate through each month
+    for (int i = 0; i < months; i++) {
+      final month = DateTime(startMonth.year, startMonth.month + i, 1);
+      final monthKey = getMonthName(month);
+      final monthEnd = getEndOfMonth(month);
+
+      // Group days by weekday (1 = Monday, 7 = Sunday)
+      final weekdayMap = <int, List<DateTime>>{};
+      for (int wd = 1; wd <= 7; wd++) {
+        weekdayMap[wd] = [];
+      }
+
+      // Add all days of the month to their respective weekday
+      DateTime current = month;
+      while (current.month == month.month && current.isBefore(monthEnd.add(const Duration(days: 1)))) {
+        weekdayMap[current.weekday]!.add(current);
+        current = current.add(const Duration(days: 1));
+      }
+
+      result[monthKey] = weekdayMap;
+    }
+
+    return result;
   }
 
   // Get start of week

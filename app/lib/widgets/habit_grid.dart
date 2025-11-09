@@ -139,7 +139,7 @@ class _GitHubStyleGrid extends StatelessWidget {
     const double weekdayLabelWidth = 28.0;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
           // Month labels
@@ -148,8 +148,8 @@ class _GitHubStyleGrid extends StatelessWidget {
               padding: const EdgeInsets.only(left: weekdayLabelWidth, bottom: 4),
               child: SizedBox(
                 height: 14,
-                width: weekCount * (tileSize + tileGap),
                 child: Stack(
+                  clipBehavior: Clip.none,
                   children: monthLabels.map((entry) {
                     final col = entry.key;
                     final label = entry.value;
@@ -157,6 +157,7 @@ class _GitHubStyleGrid extends StatelessWidget {
                       left: col * (tileSize + tileGap),
                       child: Text(
                         label,
+                        overflow: TextOverflow.visible,
                         style: const TextStyle(
                           fontSize: 10,
                           color: AppColors.textSecondary,
@@ -174,6 +175,7 @@ class _GitHubStyleGrid extends StatelessWidget {
           // Grid
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: [
               // Weekday labels (Mon, Wed, Fri)
               if (showLabels)
@@ -194,24 +196,27 @@ class _GitHubStyleGrid extends StatelessWidget {
                 ),
 
               // Grid tiles
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: List.generate(7, (rowIndex) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(weekCount, (colIndex) {
-                      final date = grid[rowIndex][colIndex];
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: List.generate(7, (rowIndex) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: List.generate(weekCount, (colIndex) {
+                        final date = grid[rowIndex][colIndex];
 
-                      return _GridTile(
-                        date: date,
-                        habit: habit,
-                        onTap: date != null && onTileTap != null
-                            ? () => onTileTap!(date)
-                            : null,
-                      );
-                    }),
-                  );
-                }),
+                        return _GridTile(
+                          date: date,
+                          habit: habit,
+                          onTap: date != null && onTileTap != null
+                              ? () => onTileTap!(date)
+                              : null,
+                        );
+                      }),
+                    );
+                  }),
+                ),
               ),
             ],
           ),

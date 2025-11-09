@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/habit_provider.dart';
 import '../models/habit.dart';
+import '../utils/constants.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});

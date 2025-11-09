@@ -394,8 +394,7 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
       );
     }
 
-    await habitProvider.updateHabit(
-      widget.habit.id,
+    final updatedHabit = widget.habit.copyWith(
       name: _nameController.text,
       description: _descriptionController.text,
       icon: _selectedIcon,
@@ -403,6 +402,8 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
       hasOrOptions: _hasOrOptions,
       orOptions: orOptions,
     );
+
+    await habitProvider.updateHabit(updatedHabit);
 
     if (mounted) {
       Navigator.pop(context);

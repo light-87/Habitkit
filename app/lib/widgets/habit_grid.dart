@@ -53,35 +53,50 @@ class _HabitGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get dates organized by weeks
-    final weeks = app_date_utils.DateUtils.getWeekGridDates(months: months);
+    // Get dates organized by month and weekday
+    final yearViewData = app_date_utils.DateUtils.getYearViewDates(months: months);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: weeks.map((week) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: week.map((date) {
-              if (date == null) {
-                // Empty cell for dates outside range
-                return Container(
-                  width: AppConstants.gridTileSize,
-                  height: AppConstants.gridTileSize,
-                  margin: const EdgeInsets.all(AppConstants.gridTileGap / 2),
-                );
-              }
+        children: [
+          // Month columns
+          ...yearViewData.entries.map((monthEntry) {
+            final monthName = monthEntry.key;
+            final weekdayData = monthEntry.value;
 
-              return _GridTile(
-                date: date,
-                habit: habit,
-                onTap: onTileTap != null ? () => onTileTap!(date) : null,
-              );
-            }).toList(),
-          );
-        }).toList(),
+            return Padding(
+              padding: const EdgeInsets.only(right: AppConstants.spacingSM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Weekday rows for this month
+                  ...List.generate(7, (index) {
+                    final weekday = index + 1; // 1 = Monday, 7 = Sunday
+                    final daysInWeekday = weekdayData[weekday] ?? [];
+
+                    return SizedBox(
+                      height: AppConstants.gridTileSize +
+                          AppConstants.gridTileGap,
+                      child: Row(
+                        children: daysInWeekday.map((date) {
+                          return _GridTile(
+                            date: date,
+                            habit: habit,
+                            onTap: onTileTap != null
+                                ? () => onTileTap!(date)
+                                : null,
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

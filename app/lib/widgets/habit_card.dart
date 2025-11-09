@@ -102,7 +102,7 @@ class HabitCard extends StatelessWidget {
                 child: HabitGrid(
                   habit: habit,
                   months: 7,
-                  showLabels: true,
+                  showLabels: false,
                 ),
               ),
 

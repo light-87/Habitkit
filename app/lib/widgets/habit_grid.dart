@@ -12,7 +12,7 @@ class HabitGrid extends StatelessWidget {
   const HabitGrid({
     super.key,
     required this.habit,
-    this.months = 7,
+    this.months = 5,
     this.showLabels = true,
     this.onTileTap,
   });
@@ -54,7 +54,11 @@ class _GitHubStyleGrid extends StatelessWidget {
       current = current.subtract(const Duration(days: 1));
     }
 
-    final endDate = now;
+    // Get the end of the week containing today (Sunday)
+    DateTime endDate = now;
+    while (endDate.weekday != DateTime.sunday) {
+      endDate = endDate.add(const Duration(days: 1));
+    }
 
     // Build grid: 7 rows (Mon-Sun) and multiple columns (weeks)
     final grid = <List<DateTime?>>[];
@@ -67,7 +71,7 @@ class _GitHubStyleGrid extends StatelessWidget {
     // Fill in the dates
     DateTime date = current;
     while (date.isBefore(endDate) || date.isAtSameMomentAs(endDate)) {
-      // Add dates for one week
+      // Add dates for one week (Monday to Sunday)
       for (int dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
         final currentDate = date.add(Duration(days: dayOfWeek));
 
@@ -75,6 +79,7 @@ class _GitHubStyleGrid extends StatelessWidget {
         if (currentDate.isBefore(startMonth)) {
           grid[dayOfWeek].add(null);
         } else if (currentDate.isAfter(endDate)) {
+          // Don't show dates beyond the end of current week
           grid[dayOfWeek].add(null);
         } else {
           grid[dayOfWeek].add(currentDate);
@@ -129,45 +134,37 @@ class _GitHubStyleGrid extends StatelessWidget {
     }
 
     final weekCount = grid[0].length;
+    const double tileSize = AppConstants.gridTileSize;
+    const double tileGap = AppConstants.gridTileGap;
+    const double weekdayLabelWidth = 28.0;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
           // Month labels
           if (showLabels) ...[
             Padding(
-              padding: const EdgeInsets.only(left: 0, bottom: 4),
+              padding: const EdgeInsets.only(left: weekdayLabelWidth, bottom: 4),
               child: SizedBox(
-                height: 16,
-                child: Row(
-                  children: List.generate(weekCount, (colIndex) {
-                    // Find if there's a month label for this column
-                    final label = monthLabels.firstWhere(
-                      (entry) => entry.key == colIndex,
-                      orElse: () => const MapEntry(-1, ''),
-                    );
-
-                    if (label.key == colIndex) {
-                      return SizedBox(
-                        width: AppConstants.gridTileSize + AppConstants.gridTileGap,
-                        child: Text(
-                          label.value,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                height: 14,
+                width: weekCount * (tileSize + tileGap),
+                child: Stack(
+                  children: monthLabels.map((entry) {
+                    final col = entry.key;
+                    final label = entry.value;
+                    return Positioned(
+                      left: col * (tileSize + tileGap),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
-                      );
-                    }
-
-                    return SizedBox(
-                      width: AppConstants.gridTileSize + AppConstants.gridTileGap,
+                      ),
                     );
-                  }),
+                  }).toList(),
                 ),
               ),
             ),
@@ -180,18 +177,18 @@ class _GitHubStyleGrid extends StatelessWidget {
             children: [
               // Weekday labels (Mon, Wed, Fri)
               if (showLabels)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
+                SizedBox(
+                  width: weekdayLabelWidth,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildWeekdayLabel(''),  // Mon - no label
-                      _buildWeekdayLabel(''),  // Tue - no label
+                      _buildWeekdayLabel('Mon'),
+                      _buildWeekdayLabel(''),
                       _buildWeekdayLabel('Wed'),
-                      _buildWeekdayLabel(''),  // Thu - no label
+                      _buildWeekdayLabel(''),
                       _buildWeekdayLabel('Fri'),
-                      _buildWeekdayLabel(''),  // Sat - no label
-                      _buildWeekdayLabel(''),  // Sun - no label
+                      _buildWeekdayLabel(''),
+                      _buildWeekdayLabel(''),
                     ],
                   ),
                 ),
@@ -219,14 +216,14 @@ class _GitHubStyleGrid extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildWeekdayLabel(String label) {
     return Container(
       height: AppConstants.gridTileSize + AppConstants.gridTileGap,
-      alignment: Alignment.centerRight,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.only(right: 4),
       child: Text(
         label,
         style: const TextStyle(

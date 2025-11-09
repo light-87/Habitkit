@@ -139,7 +139,7 @@ class HabitDetailScreen extends StatelessWidget {
             height: 140,
             child: HabitGrid(
               habit: currentHabit,
-              months: 7,
+              months: 5,
               showLabels: true,
               onTileTap: (date) {
                 _showDayOptions(context, date, currentHabit);
